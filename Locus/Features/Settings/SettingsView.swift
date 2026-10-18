@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject private var session: SpoofSession
     @Environment(\.dismiss) private var dismiss
 
+    @AppStorage(CoordinateTransform.defaultsKey) private var coordinateMode = CoordinateTransform.Mode.none.rawValue
     @State private var showImporter = false
     @State private var showPairOnDevice = false
     @State private var showNameEasterEgg = false
@@ -29,7 +30,7 @@ struct SettingsView: View {
             List {
                 Section {
                     Label {
-                        Text(pairing.hasPairingFile ? "RPPairing file installed" : "No pairing file")
+                        Text(pairing.hasPairingFile ? String(localized: "RPPairing file installed") : String(localized: "No pairing file"))
                     } icon: {
                         Image(systemName: pairing.hasPairingFile ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                             .foregroundStyle(pairing.hasPairingFile ? LocusTheme.statusGood : LocusTheme.statusWarn)
@@ -39,12 +40,12 @@ struct SettingsView: View {
                         Button {
                             showPairOnDevice = true
                         } label: {
-                            Label("Pair on this iPhone", systemImage: "iphone.gen3.radiowaves.left.and.right")
+                            Label(String(localized: "Pair on this iPhone"), systemImage: "iphone.gen3.radiowaves.left.and.right")
                         }
                     }
 
-                    Button("Import RPPairing file…") { showImporter = true }
-                    Button("Paste RPPairing from clipboard") {
+                    Button(String(localized: "Import RPPairing file…")) { showImporter = true }
+                    Button(String(localized: "Paste RPPairing from clipboard")) {
                         do {
                             try pairing.importPairingFromClipboard()
                         } catch {
@@ -52,30 +53,30 @@ struct SettingsView: View {
                         }
                     }
                     if pairing.hasPairingFile {
-                        Button("Remove pairing file", role: .destructive) {
+                        Button(String(localized: "Remove pairing file"), role: .destructive) {
                             try? pairing.removePairing()
                         }
                     }
                 } header: {
-                    Text("Developer pairing")
+                    Text(String(localized: "Developer pairing"))
                 } footer: {
                     Text(supportsOnDevicePairing
-                         ? "On iOS 27, use Pair on this iPhone — no computer. Locus advertises a pairable host; confirm the 6-digit code under Settings › Privacy & Security › Developer Mode › Pair with Host. On older iOS, import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). LiveContainer: enable Fix File Picker on Locus, or use Paste / Share → LiveContainer → Locus."
-                         : "Import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). If the file picker fails (common in LiveContainer), enable Fix File Picker on the app, share the file into LiveContainer → Locus, or copy the plist and use Paste.")
+                         ? String(localized: "On iOS 27, use Pair on this iPhone — no computer. Locus advertises a pairable host; confirm the 6-digit code under Settings › Privacy & Security › Developer Mode › Pair with Host. On older iOS, import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). LiveContainer: enable Fix File Picker on Locus, or use Paste / Share → LiveContainer → Locus.")
+                         : String(localized: "Import an RPPairing file from idevice_pair (not a SideStore lockdown .mobiledevicepairing). If the file picker fails (common in LiveContainer), enable Fix File Picker on the app, share the file into LiveContainer → Locus, or copy the plist and use Paste."))
                 }
 
                 Section {
-                    TextField("Device tunnel IP", text: $tunnelIP)
+                    TextField(String(localized: "Device tunnel IP"), text: $tunnelIP)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onSubmit {
                             TunnelConfig.setTargetIP(tunnelIP)
                         }
-                    LabeledContent("Status") {
-                        Text(LocalDevVPN.isConnected ? "Connected" : "Not connected")
+                    LabeledContent(String(localized: "Status")) {
+                        Text(LocalDevVPN.isConnected ? String(localized: "Connected") : String(localized: "Not connected"))
                             .foregroundStyle(LocalDevVPN.isConnected ? LocusTheme.statusGood : LocusTheme.statusWarn)
                     }
-                    Button("Save tunnel IP") {
+                    Button(String(localized: "Save tunnel IP")) {
                         TunnelConfig.setTargetIP(tunnelIP)
                     }
                     Button {
@@ -86,26 +87,39 @@ struct SettingsView: View {
                         }
                     } label: {
                         Label(
-                            localDevVPNInstalled ? "Open LocalDevVPN" : "Get LocalDevVPN (App Store)",
+                            localDevVPNInstalled ? String(localized: "Open LocalDevVPN") : String(localized: "Get LocalDevVPN (App Store)"),
                             systemImage: localDevVPNInstalled ? "lock.shield.fill" : "arrow.down.app.fill"
                         )
                     }
                 } header: {
-                    Text("Tunnel")
+                    Text(String(localized: "Tunnel"))
                 } footer: {
-                    Text("Connect LocalDevVPN before teleporting. Default tunnel IP is 10.7.0.1. Start a spoof on Wi‑Fi first; it can keep working on cellular afterward.")
+                    Text(String(localized: "Connect LocalDevVPN before teleporting. Default tunnel IP is 10.7.0.1. Start a spoof on Wi‑Fi first; it can keep working on cellular afterward."))
                 }
 
-                Section("Privacy") {
-                    Text("Fully on-device. Favorites and recents stay in UserDefaults. No analytics, no accounts, nothing uploaded.")
+                Section {
+                    Picker(String(localized: "Conversion"), selection: $coordinateMode) {
+                        ForEach(CoordinateTransform.Mode.allCases) { mode in
+                            Text(mode.title).tag(mode.rawValue)
+                        }
+                    }
+                    .disabled(session.isSpoofing || session.isBusy || session.simulated != nil)
+                } header: {
+                    Text(String(localized: "Coordinate conversion"))
+                } footer: {
+                    Text(String(localized: "Off by default. Converts only coordinates sent to the device; saved places and GPX remain unchanged. Use WGS-84 → GCJ-02 or BD-09 only when the destination expects that system. For a GCJ-02 map pin sent to GPS, use GCJ-02 → WGS-84. Stop spoofing before changing this setting. Coverage uses an approximate China bounding box; leave it off elsewhere, including border areas."))
+                }
+
+                Section(String(localized: "Privacy")) {
+                    Text(String(localized: "Fully on-device. Favorites and recents stay in UserDefaults. No analytics, no accounts, nothing uploaded."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
 
-                Section("About") {
-                    LabeledContent("Version", value: appVersion)
-                    LabeledContent("Engine", value: "idevice DVT location simulation")
-                    Text("Locus is free and open source (MIT). Location injection uses the MIT-licensed idevice FFI.")
+                Section(String(localized: "About")) {
+                    LabeledContent(String(localized: "Version"), value: appVersion)
+                    LabeledContent(String(localized: "Engine"), value: String(localized: "idevice DVT location simulation"))
+                    Text(String(localized: "Locus is free and open source (MIT). Location injection uses the MIT-licensed idevice FFI."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -114,7 +128,7 @@ struct SettingsView: View {
                     Button {
                         showNameEasterEgg = true
                     } label: {
-                        Text("locus, n. — a place. From the Latin for where you are.")
+                        Text(String(localized: "locus, n. — a place. From the Latin for where you are."))
                             .font(.footnote.italic())
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -126,10 +140,10 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle(String(localized: "Settings"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button(String(localized: "Done")) {
                         TunnelConfig.setTargetIP(tunnelIP)
                         dismiss()
                     }
@@ -179,9 +193,9 @@ struct PlacesView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Favorites") {
+                Section(String(localized: "Favorites")) {
                     if session.favorites.isEmpty {
-                        Text("Star a pin from the map to save it.")
+                        Text(String(localized: "Star a pin from the map to save it."))
                             .foregroundStyle(.secondary)
                     }
                     ForEach(session.favorites) { place in
@@ -190,22 +204,22 @@ struct PlacesView: View {
                                 Button(role: .destructive) {
                                     session.removeFavorite(place)
                                 } label: {
-                                    Label("Delete", systemImage: "trash.fill")
+                                    Label(String(localized: "Delete"), systemImage: "trash.fill")
                                 }
                                 Button {
                                     placeToRename = place
                                     renameText = place.name
                                 } label: {
-                                    Label("Rename", systemImage: "pencil")
+                                    Label(String(localized: "Rename"), systemImage: "pencil")
                                 }
                                 .tint(.gray)
                             }
                     }
                 }
 
-                Section("Recents") {
+                Section(String(localized: "Recents")) {
                     if session.recents.isEmpty {
-                        Text("Teleports show up here.")
+                        Text(String(localized: "Teleports show up here."))
                             .foregroundStyle(.secondary)
                     }
                     ForEach(session.recents) { place in
@@ -214,34 +228,34 @@ struct PlacesView: View {
                                 Button(role: .destructive) {
                                     session.removeRecent(place)
                                 } label: {
-                                    Label("Delete", systemImage: "trash.fill")
+                                    Label(String(localized: "Delete"), systemImage: "trash.fill")
                                 }
                             }
                     }
                 }
             }
-            .navigationTitle("Places")
+            .navigationTitle(String(localized: "Places"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    Button(String(localized: "Done")) { dismiss() }
                 }
             }
-            .alert("Rename Favorite", isPresented: Binding(
+            .alert(String(localized: "Rename Favorite"), isPresented: Binding(
                 get: { placeToRename != nil },
                 set: { if !$0 { placeToRename = nil } }
             )) {
-                TextField("Name", text: $renameText)
-                Button("Cancel", role: .cancel) {
+                TextField(String(localized: "Name"), text: $renameText)
+                Button(String(localized: "Cancel"), role: .cancel) {
                     placeToRename = nil
                 }
-                Button("Save") {
+                Button(String(localized: "Save")) {
                     if let place = placeToRename {
                         session.renameFavorite(place, to: renameText)
                     }
                     placeToRename = nil
                 }
             } message: {
-                Text("Choose a name you’ll recognize later.")
+                Text(String(localized: "Choose a name you’ll recognize later."))
             }
         }
     }

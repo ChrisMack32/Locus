@@ -11,10 +11,10 @@ enum TravelMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .walk: return "Walk"
-        case .run: return "Run"
-        case .cycle: return "Cycle"
-        case .drive: return "Drive"
+        case .walk: return String(localized: "Walk")
+        case .run: return String(localized: "Run")
+        case .cycle: return String(localized: "Cycle")
+        case .drive: return String(localized: "Drive")
         }
     }
 
@@ -54,11 +54,11 @@ enum SpoofStatus: Equatable {
 
     var label: String {
         switch self {
-        case .idle: return "Not Spoofing"
-        case .connecting: return "Starting…"
-        case .active: return "Spoofing"
-        case .reconnecting: return "Reconnecting…"
-        case .dropped: return "Interrupted"
+        case .idle: return String(localized: "Not Spoofing")
+        case .connecting: return String(localized: "Starting…")
+        case .active: return String(localized: "Spoofing")
+        case .reconnecting: return String(localized: "Reconnecting…")
+        case .dropped: return String(localized: "Interrupted")
         }
     }
 
@@ -106,7 +106,7 @@ final class SpoofSession: ObservableObject {
 
     func teleport(to coordinate: CLLocationCoordinate2D, pairing: PairingStore) {
         guard pairing.hasPairingFile else {
-            lastError = "Import an RPPairing file in Settings first."
+            lastError = String(localized: "Import an RPPairing file in Settings first.")
             return
         }
         pin = coordinate
@@ -149,12 +149,12 @@ final class SpoofSession: ObservableObject {
 
     func startJoystick(pairing: PairingStore) {
         guard pairing.hasPairingFile else {
-            lastError = "Import an RPPairing file in Settings first."
+            lastError = String(localized: "Import an RPPairing file in Settings first.")
             return
         }
         let start = simulated ?? pin ?? locationKeeper.lastKnownCoordinate
         guard let start else {
-            lastError = "Drop a pin or teleport somewhere before using the joystick."
+            lastError = String(localized: "Drop a pin or teleport somewhere before using the joystick.")
             return
         }
         if simulated == nil {
@@ -415,7 +415,7 @@ final class SpoofSession: ObservableObject {
     private func postDropNotification(_ message: String) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
         let content = UNMutableNotificationContent()
-        content.title = "Locus spoof dropped"
+        content.title = String(localized: "Locus spoof dropped")
         content.body = message
         content.sound = .default
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)

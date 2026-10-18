@@ -16,7 +16,9 @@ Free and open-source iPhone location teleport. Tap the map, search a place, or d
 - Walk/Drive routing on real roads & footpaths (MapKit)
 - Draw a path or import / export GPX
 - Background keep-alive + live status bar + drop alerts
-- Favorites & recents
+- Favorites & recents, including named favorites from any map pin
+- English and Simplified Chinese (follows the system/app language)
+- Optional coordinate conversion before sending a location
 - First-run setup walkthrough
 - Fully on-device — no analytics, nothing uploaded
 
@@ -70,3 +72,46 @@ xcodebuild -project Locus.xcodeproj -scheme Locus -configuration Release \
 ## License
 
 MIT. `Vendor/idevice` contains the idevice FFI (MIT). Locus is an independent open-source project and is not affiliated with Mirage / Wapixel.
+
+## Language and map favorites
+
+Locus follows the iOS app language. Simplified Chinese uses the standard `zh-Hans`
+localization, including `zh-CN` language preferences. You can select the app language
+in iOS Settings when more than one preferred language is configured.
+
+Tap the map to drop a pin, tap the pin and choose **Save Favorite**, or use the star
+above the map. Confirm a name to save it; a blank name uses the coordinates. Saved
+places remain available in **Places** after relaunch. Searching retains its existing
+automatic favorite behavior.
+
+## Coordinate conversion
+
+**Settings → Coordinate conversion** defaults to **Off**. The choices are
+WGS-84 → GCJ-02, WGS-84 → BD-09, and GCJ-02 → WGS-84. Select the direction based
+on the coordinate source and receiving service, not the interface language.
+GPS coordinates and map-provider coordinates are not interchangeable; see
+[Baidu's coordinate type documentation](https://lbsyun.baidu.com/docs/webapi?title=mapadjustment%2Furi%2Fweb).
+A map pin already expressed in GCJ-02 may need the inverse conversion for a GPS
+service; adding another forward offset can worsen the error.
+
+Conversion runs once at the location engine boundary for teleports, routes, joystick
+updates and resends. Pins, favorites, recents and GPX retain their original numbers.
+Stop the active session before changing the setting. The offline approximation uses
+longitude 72.004–137.8347 and latitude 0.8293–55.8271 as a coarse coverage rectangle,
+not a precise mainland boundary; keep conversion off in other regions and border
+areas. This is not an automatic MapKit datum detector or a guarantee of device accuracy.
+
+Run the standalone coordinate checks on macOS:
+
+```sh
+xcrun swiftc -module-cache-path /tmp/locus-swift-module-cache \
+  Locus/Engine/CoordinateTransform.swift Tests/CoordinateTransformChecks.swift \
+  -o /tmp/locus-coordinate-checks
+/tmp/locus-coordinate-checks
+```
+
+On a paired iPhone with LocalDevVPN connected, verify a recognizable map pin using
+Teleport and another location app, then check Stop, joystick movement, route playback,
+background resends, and a saved favorite after relaunch. Compare conversion Off and the
+appropriate direction separately. A successful build or conversion check does not
+verify the developer tunnel or the receiving app's location update behavior.

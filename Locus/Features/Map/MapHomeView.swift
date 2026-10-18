@@ -22,6 +22,9 @@ struct MapHomeView: View {
     @State private var suppressNextMapTap = false
     /// Set when the pin comes from search / a named place so starring keeps the title.
     @State private var pinPlaceName: String?
+    @State private var favoriteCoordinate: CLLocationCoordinate2D?
+    @State private var favoriteName = ""
+    @State private var showAddFavorite = false
 
     private var mapStyle: MapStyle {
         switch session.mapStyleIndex {
@@ -55,6 +58,7 @@ struct MapHomeView: View {
                                         suppressNextMapTap = false
                                     }
                                 },
+                                onFavorite: prepareFavorite,
                                 onRemove: {
                                     suppressNextMapTap = true
                                     withAnimation {
@@ -70,6 +74,7 @@ struct MapHomeView: View {
                                     suppressNextMapTap = true
                                     pinSelected = false
                                     isDraggingPin = true
+                                    pinPlaceName = nil
                                 },
                                 onDragMoved: { globalPoint in
                                     if let coord = proxy.convert(globalPoint, from: .global) {
@@ -86,7 +91,7 @@ struct MapHomeView: View {
                         }
                     }
                     if let sim = session.simulated {
-                        Annotation("Spoof", coordinate: sim) {
+                        Annotation(String(localized: "Spoof"), coordinate: sim) {
                             ZStack {
                                 Circle().fill(LocusTheme.accent.opacity(0.25)).frame(width: 44, height: 44)
                                 Circle().fill(LocusTheme.accent).frame(width: 14, height: 14)
@@ -115,6 +120,18 @@ struct MapHomeView: View {
             .background(Color.black.ignoresSafeArea())
 
             topChrome
+        }
+        .alert(String(localized: "Save Favorite"), isPresented: $showAddFavorite) {
+            TextField(String(localized: "Name"), text: $favoriteName)
+            Button(String(localized: "Cancel"), role: .cancel) { favoriteCoordinate = nil }
+            Button(String(localized: "Save")) {
+                if let coordinate = favoriteCoordinate {
+                    session.addFavorite(name: favoriteName, coordinate: coordinate)
+                }
+                favoriteCoordinate = nil
+            }
+        } message: {
+            Text(String(localized: "Choose a name for this map location. Leave it blank to use coordinates."))
         }
         .onAppear {
             session.startLocationUpdates()
@@ -148,6 +165,15 @@ struct MapHomeView: View {
             )
             .presentationDetents([.medium, .large])
         }
+    }
+
+    private func prepareFavorite() {
+        guard let pin = session.pin else { return }
+        favoriteCoordinate = pin
+        favoriteName = session.suggestedFavoriteName(for: pin, fallback: pinPlaceName)
+        searchFocused = false
+        pinSelected = false
+        showAddFavorite = true
     }
 
     private func placePin(at point: CGPoint, proxy: MapProxy) {
@@ -186,7 +212,7 @@ struct MapHomeView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search places", text: $searchText)
+            TextField(String(localized: "Search places"), text: $searchText)
                 .textInputAutocapitalization(.words)
                 .focused($searchFocused)
                 .submitLabel(.search)
@@ -206,10 +232,10 @@ struct MapHomeView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Clear and dismiss keyboard")
+                .accessibilityLabel(String(localized: "Clear and dismiss keyboard"))
             }
             if searchFocused {
-                Button("Done") {
+                Button(String(localized: "Done")) {
                     searchFocused = false
                 }
                 .font(.subheadline.weight(.semibold))
@@ -263,11 +289,9 @@ struct MapHomeView: View {
 
             if session.pin != nil {
                 chromeIconButton("star.circle") {
-                    if let pin = session.pin {
-                        let name = session.suggestedFavoriteName(for: pin, fallback: pinPlaceName)
-                        session.addFavorite(name: name, coordinate: pin)
-                    }
+                    prepareFavorite()
                 }
+                .accessibilityLabel(String(localized: "Save Favorite"))
             }
         }
         .padding(6)
@@ -289,7 +313,7 @@ struct MapHomeView: View {
         .locusGlass(.interactive, in: Circle())
         .foregroundStyle(.primary)
         .contentShape(Circle())
-        .accessibilityLabel("Current location")
+        .accessibilityLabel(String(localized: "Current location"))
     }
 
     /// Centers on the spoofed fix while spoofing, otherwise the real GPS —
@@ -357,7 +381,7 @@ struct MapHomeView: View {
     private func buildRoadRoute() {
         guard let start = routeStart ?? session.simulated ?? session.pin,
               let end = routeEnd else {
-            session.lastError = "Set a route start and end."
+            session.lastError = String(localized: "Set a route start and end.")
             return
         }
         isRouting = true
@@ -380,7 +404,7 @@ struct MapHomeView: View {
     private func playRoute() {
         let path = routeCoords.isEmpty ? drawnPath : routeCoords
         guard path.count >= 2 else {
-            session.lastError = "Build or draw a route first."
+            session.lastError = String(localized: "Build or draw a route first.")
             return
         }
         showRouteSheet = false
@@ -392,6 +416,7 @@ struct MapHomeView: View {
             let coords = try GPXCodec.parse(url)
             routeCoords = RouteBuilder.sample(coordinates: coords, every: 10)
             if let first = coords.first {
+                pinPlaceName = nil
                 session.pin = first
                 position = .region(MKCoordinateRegion(center: first, latitudinalMeters: 2000, longitudinalMeters: 2000))
             }
@@ -403,7 +428,7 @@ struct MapHomeView: View {
     private func exportGPX() {
         let path = routeCoords.isEmpty ? drawnPath : routeCoords
         guard !path.isEmpty else {
-            session.lastError = "Nothing to export."
+            session.lastError = String(localized: "Nothing to export.")
             return
         }
         let gpx = GPXCodec.export(path)

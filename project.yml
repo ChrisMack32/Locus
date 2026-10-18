@@ -1,5 +1,6 @@
 name: Locus
 options:
+  developmentLanguage: en
   bundleIdPrefix: com.chrismack
   deploymentTarget:
     iOS: "18.0"
@@ -33,8 +34,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.chrismack.locus
         PRODUCT_NAME: Locus
-        MARKETING_VERSION: "1.0.2"
-        CURRENT_PROJECT_VERSION: "3"
+        MARKETING_VERSION: "1.0.3"
+        CURRENT_PROJECT_VERSION: "4"
         INFOPLIST_FILE: Locus/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: Locus/Resources/Locus.entitlements
         CODE_SIGN_STYLE: Automatic

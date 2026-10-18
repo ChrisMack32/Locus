@@ -1,0 +1,3 @@
+"NSLocationWhenInUseUsageDescription" = "Locus 使用真实位置，方便你在地图上选点，并在结束模拟定位后回到实际位置。";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Locus 通过轻量的位置会话，让模拟定位在后台保持运行。";
+"NSLocalNetworkUsageDescription" = "Locus 使用本地网络广播可配对主机（iOS 27 配对），并连接开发者隧道（LocalDevVPN）以模拟 GPS 位置。";
