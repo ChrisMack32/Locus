@@ -108,8 +108,8 @@ final class PairOnDeviceService: ObservableObject {
     fileprivate func handleConnected() {
         phase = .deviceConnected
         Self.postPlainNotification(
-            title: "Locus connected",
-            body: "Generating pairing code…"
+            title: String(localized: "Locus connected"),
+            body: String(localized: "Generating pairing code…")
         )
     }
 
@@ -125,8 +125,8 @@ final class PairOnDeviceService: ObservableObject {
         phase = .succeeded
         teardown()
         Self.postPlainNotification(
-            title: "Locus paired",
-            body: "RPPairing is ready. Connect LocalDevVPN, then teleport."
+            title: String(localized: "Locus paired"),
+            body: String(localized: "RPPairing is ready. Connect LocalDevVPN, then teleport.")
         )
     }
 
@@ -166,7 +166,7 @@ final class PairOnDeviceService: ObservableObject {
 
     private static func postPINNotification(_ pin: String) {
         let content = UNMutableNotificationContent()
-        content.title = "Locus pairing code"
+        content.title = String(localized: "Locus pairing code")
         content.body = pin
         content.sound = .default
         if #available(iOS 15.0, *) {
@@ -215,7 +215,7 @@ final class PairOnDeviceService: ObservableObject {
             if let cMessage = err.pointee.message {
                 message = String(cString: cMessage)
             } else {
-                message = "Unknown pairing error (\(err.pointee.code))"
+                message = String(format: String(localized: "Unknown pairing error (%lld)"), Int64(err.pointee.code))
             }
             idevice_error_free(err)
             DispatchQueue.main.async { box.owner?.handleFailure(message) }
@@ -224,7 +224,7 @@ final class PairOnDeviceService: ObservableObject {
 
         guard let outFile else {
             DispatchQueue.main.async {
-                box.owner?.handleFailure("Pairing finished but no pairing file was returned.")
+                box.owner?.handleFailure(String(localized: "Pairing finished but no pairing file was returned."))
             }
             return
         }
@@ -242,11 +242,11 @@ final class PairOnDeviceService: ObservableObject {
             if let cMessage = writeError.pointee.message {
                 message = String(cString: cMessage)
             } else {
-                message = "Failed to write pairing file"
+                message = String(localized: "Failed to write pairing file")
             }
             idevice_error_free(writeError)
             DispatchQueue.main.async {
-                box.owner?.handleFailure("Paired, but failed to save file: \(message)")
+                box.owner?.handleFailure(String(format: String(localized: "Paired, but failed to save file: %@"), message))
             }
             return
         }

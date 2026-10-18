@@ -1,0 +1,3 @@
+"NSLocationWhenInUseUsageDescription" = "Locus uses your real location so you can aim the map and return home after teleporting.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Locus keeps a light location session alive so simulated GPS can stay active in the background.";
+"NSLocalNetworkUsageDescription" = "Locus uses the local network to advertise as a pairable host (iOS 27 pairing) and to reach the developer tunnel (LocalDevVPN) for GPS override.";

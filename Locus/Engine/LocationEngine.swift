@@ -1,7 +1,9 @@
+import CoreLocation
 import Foundation
 import idevice
 
 enum LocationEngineError: LocalizedError {
+    case invalidCoordinate
     case invalidIP
     case pairingRead
     case tunnelCreate
@@ -13,14 +15,15 @@ enum LocationEngineError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidIP: return "Tunnel IP is invalid. Check Settings → Tunnel IP (usually 10.7.0.1)."
-        case .pairingRead: return "Could not read the RPPairing file. Generate one with idevice_pair in RPPairing mode."
-        case .tunnelCreate: return "Could not open the developer tunnel. Is LocalDevVPN connected on Wi‑Fi?"
-        case .remoteServer: return "Connected to the tunnel but RemoteXPC handshake failed."
-        case .simulationCreate: return "Could not open Apple’s location simulation service."
-        case .locationSet: return "Failed to set simulated coordinates."
-        case .locationClear: return "Failed to clear simulated location."
-        case .notActive: return "No active simulation session."
+        case .invalidCoordinate: return String(localized: "Invalid coordinates.")
+        case .invalidIP: return String(localized: "Tunnel IP is invalid. Check Settings → Tunnel IP (usually 10.7.0.1).")
+        case .pairingRead: return String(localized: "Could not read the RPPairing file. Generate one with idevice_pair in RPPairing mode.")
+        case .tunnelCreate: return String(localized: "Could not open the developer tunnel. Is LocalDevVPN connected on Wi‑Fi?")
+        case .remoteServer: return String(localized: "Connected to the tunnel but RemoteXPC handshake failed.")
+        case .simulationCreate: return String(localized: "Could not open Apple’s location simulation service.")
+        case .locationSet: return String(localized: "Failed to set simulated coordinates.")
+        case .locationClear: return String(localized: "Failed to clear simulated location.")
+        case .notActive: return String(localized: "No active simulation session.")
         }
     }
 
@@ -59,9 +62,12 @@ enum LocationEngine {
     static var isSessionActive: Bool { locationSimulation != nil }
 
     static func set(latitude: Double, longitude: Double, pairingPath: String, deviceIP: String) -> Result<Void, LocationEngineError> {
+        let input = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        guard CLLocationCoordinate2DIsValid(input) else { return .failure(.invalidCoordinate) }
+        let output = CoordinateTransform.convert(input, mode: CoordinateTransform.selectedMode)
         var result: Result<Void, LocationEngineError> = .failure(.locationSet)
         queue.sync {
-            let code = setLocked(latitude: latitude, longitude: longitude, pairingPath: pairingPath, deviceIP: deviceIP)
+            let code = setLocked(latitude: output.latitude, longitude: output.longitude, pairingPath: pairingPath, deviceIP: deviceIP)
             result = code == ok ? .success(()) : .failure(.from(code: code))
         }
         return result
