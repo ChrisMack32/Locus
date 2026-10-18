@@ -1,5 +1,7 @@
 # Locus
 
+[简体中文](README.zh-CN.md)
+
 Free and open-source iPhone location teleport. Tap the map, search a place, or drive a route — Locus injects coordinates through Apple’s **developer location service** into `locationd`, so Maps and other apps see the spoofed GPS (not just a Wi‑Fi lookup that outdoor GPS will overwrite).
 
 <p align="center">
