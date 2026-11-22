@@ -1,11 +1,12 @@
 import MapKit
 import SwiftUI
 
-/// Map pin with Liquid Glass “Remove Pin” menu and long-press drag.
+/// Map pin with save/remove actions and long-press drag.
 struct MapDropPin: View {
     var selected: Bool
     var isDragging: Bool
     var onSelect: () -> Void
+    var onFavorite: () -> Void
     var onRemove: () -> Void
     var onDragBegan: () -> Void
     var onDragMoved: (CGPoint) -> Void
@@ -14,16 +15,25 @@ struct MapDropPin: View {
     var body: some View {
         VStack(spacing: 8) {
             if selected && !isDragging {
-                Button(action: onRemove) {
-                    Label("Remove Pin", systemImage: "trash.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(LocusTheme.danger)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                VStack(spacing: 0) {
+                    Button(action: onFavorite) {
+                        Label(String(localized: "Save Favorite"), systemImage: "star.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.plain)
+                    Button(action: onRemove) {
+                        Label(String(localized: "Remove Pin"), systemImage: "trash.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(LocusTheme.danger)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-                .locusGlass(.regular, in: Capsule())
-                .contentShape(Capsule())
+                .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 18))
+                .contentShape(RoundedRectangle(cornerRadius: 18))
                 .transition(.scale(scale: 0.9, anchor: .bottom).combined(with: .opacity))
             }
 
@@ -44,8 +54,8 @@ struct MapDropPin: View {
         .animation(.spring(response: 0.28, dampingFraction: 0.78), value: selected)
         .animation(.easeOut(duration: 0.15), value: isDragging)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(selected ? "Selected pin" : "Map pin")
-        .accessibilityHint("Tap to show remove. Touch and hold to drag.")
+        .accessibilityLabel(selected ? String(localized: "Selected pin") : String(localized: "Map pin"))
+        .accessibilityHint(String(localized: "Tap to save or remove. Touch and hold to drag."))
     }
 
     private var dragGesture: some Gesture {

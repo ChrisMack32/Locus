@@ -100,7 +100,7 @@ struct SetupFlowView: View {
             get: { session.lastError != nil },
             set: { if !$0 { session.lastError = nil } }
         )) {
-            Button("OK", role: .cancel) { session.lastError = nil }
+            Button(String(localized: "OK"), role: .cancel) { session.lastError = nil }
         } message: {
             Text(session.lastError ?? "")
         }
@@ -164,7 +164,7 @@ struct SetupFlowView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
+        .accessibilityLabel(String(format: String(localized: "Step %lld of %lld"), Int64(step.rawValue + 1), Int64(Step.allCases.count)))
     }
 
     // MARK: - Welcome
@@ -186,7 +186,7 @@ struct SetupFlowView: View {
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .tracking(-0.5)
 
-                    Text("Teleport your location.\nNo computer required.")
+                    Text(String(localized: "Teleport your location.\nNo computer required."))
                         .font(.title3)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -200,11 +200,11 @@ struct SetupFlowView: View {
             Spacer()
 
             VStack(spacing: 14) {
-                Text("A short setup — about two minutes.")
+                Text(String(localized: "A short setup — about two minutes."))
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
 
-                primaryButton("Get started") {
+                primaryButton(String(localized: "Get started")) {
                     SetupGate.markInProgress()
                     withAnimation { step = .pairing }
                 }
@@ -220,11 +220,11 @@ struct SetupFlowView: View {
     private var pairingPage: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Connect this iPhone")
+                Text(String(localized: "Connect this iPhone"))
                     .font(.title.weight(.bold))
                 Text(supportsOnDevicePairing
-                     ? "Locus needs a one-time pairing so it can set your location. You’ll confirm a short code in Settings."
-                     : "Import a pairing file from your computer — Locus uses it to set your location securely on this device.")
+                     ? String(localized: "Locus needs a one-time pairing so it can set your location. You’ll confirm a short code in Settings.")
+                     : String(localized: "Import a pairing file from your computer — Locus uses it to set your location securely on this device."))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -243,7 +243,7 @@ struct SetupFlowView: View {
                     .padding(.horizontal, 24)
                 Spacer()
                 VStack(spacing: 12) {
-                    primaryButton("Import pairing file") {
+                    primaryButton(String(localized: "Import pairing file")) {
                         showImporter = true
                     }
                     Button {
@@ -254,7 +254,7 @@ struct SetupFlowView: View {
                             session.lastError = error.localizedDescription
                         }
                     } label: {
-                        Text("Paste from clipboard")
+                        Text(String(localized: "Paste from clipboard"))
                             .font(.headline)
                             .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity)
@@ -272,9 +272,9 @@ struct SetupFlowView: View {
 
     private var importPairingCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            stepRow(1, "On a Mac, run idevice_pair and create an RPPairing file.")
-            stepRow(2, "AirDrop / Share into Locus, or copy the plist text.")
-            stepRow(3, "Tap Import, or Paste from clipboard if the picker doesn’t work (LiveContainer).")
+            stepRow(1, String(localized: "On a Mac, run idevice_pair and create an RPPairing file."))
+            stepRow(2, String(localized: "AirDrop / Share into Locus, or copy the plist text."))
+            stepRow(3, String(localized: "Tap Import, or Paste from clipboard if the picker doesn’t work (LiveContainer)."))
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -307,12 +307,12 @@ struct SetupFlowView: View {
                     .foregroundStyle(LocusTheme.accent)
 
                 VStack(spacing: 10) {
-                    Text(localDevVPNInstalled ? "Connect LocalDevVPN" : "One more app")
+                    Text(localDevVPNInstalled ? String(localized: "Connect LocalDevVPN") : String(localized: "One more app"))
                         .font(.title.weight(.bold))
 
                     Text(localDevVPNInstalled
-                         ? "LocalDevVPN is installed. Open it to turn on the private tunnel Locus needs, then come back here."
-                         : "LocalDevVPN creates a private tunnel Locus uses to talk to your phone’s location system. Install it, turn it on, then you’re ready to teleport.")
+                         ? String(localized: "LocalDevVPN is installed. Open it to turn on the private tunnel Locus needs, then come back here.")
+                         : String(localized: "LocalDevVPN creates a private tunnel Locus uses to talk to your phone’s location system. Install it, turn it on, then you’re ready to teleport."))
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -321,13 +321,13 @@ struct SetupFlowView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     if localDevVPNInstalled {
-                        tipRow(systemImage: "checkmark.circle.fill", title: "Installed", detail: "LocalDevVPN is on this iPhone.")
-                        tipRow(systemImage: "power.circle.fill", title: "Connect", detail: "Tap below to open it and start the tunnel. You’ll bounce back to Locus.")
+                        tipRow(systemImage: "checkmark.circle.fill", title: String(localized: "Installed"), detail: String(localized: "LocalDevVPN is on this iPhone."))
+                        tipRow(systemImage: "power.circle.fill", title: String(localized: "Connect"), detail: String(localized: "Tap below to open it and start the tunnel. You’ll bounce back to Locus."))
                     } else {
-                        tipRow(systemImage: "arrow.down.app.fill", title: "Install", detail: "Get LocalDevVPN from the App Store.")
-                        tipRow(systemImage: "power.circle.fill", title: "Connect", detail: "Open it and turn the VPN on. Leave the default IP alone.")
+                        tipRow(systemImage: "arrow.down.app.fill", title: String(localized: "Install"), detail: String(localized: "Get LocalDevVPN from the App Store."))
+                        tipRow(systemImage: "power.circle.fill", title: String(localized: "Connect"), detail: String(localized: "Open it and turn the VPN on. Leave the default IP alone."))
                     }
-                    tipRow(systemImage: "wifi", title: "First teleport on Wi‑Fi", detail: "Start your first teleport while on Wi‑Fi. After that, it can keep working on cellular.")
+                    tipRow(systemImage: "wifi", title: String(localized: "First teleport on Wi‑Fi"), detail: String(localized: "Start your first teleport while on Wi‑Fi. After that, it can keep working on cellular."))
                 }
                 .padding(18)
                 .locusGlass(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -346,7 +346,7 @@ struct SetupFlowView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: localDevVPNInstalled ? "lock.shield.fill" : "apple.logo")
-                        Text(localDevVPNInstalled ? "Open LocalDevVPN" : "Get LocalDevVPN")
+                        Text(localDevVPNInstalled ? String(localized: "Open LocalDevVPN") : String(localized: "Get LocalDevVPN"))
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -357,7 +357,7 @@ struct SetupFlowView: View {
                 }
                 .buttonStyle(.plain)
 
-                primaryButton("I’ve connected it — continue") {
+                primaryButton(String(localized: "I’ve connected it — continue")) {
                     onFinished()
                 }
             }
