@@ -9,7 +9,9 @@ enum TunnelConfig {
         let stored = UserDefaults.standard.string(forKey: defaultsKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let stored, !stored.isEmpty else { return defaultIP }
-        return stored
+        // LocalDevVPN now shows addresses as CIDR (`10.7.0.1/32`).
+        let host = stored.split(separator: "/").first.map(String.init) ?? stored
+        return host.isEmpty ? defaultIP : host
     }
 
     static func setTargetIP(_ value: String) {
